@@ -1,0 +1,103 @@
+The old checkout was three URLs: `/checkout/address`, `/checkout/shipping`,
+`/checkout/pay`. Three full page loads, each one re-validating things the
+previous step had already validated. On mobile the funnel leaked hardest at the
+first seam — of the people who reached the address page, 38% never saw the
+payment page at all. The store was running 3M sessions a month, so that seam was
+the most expensive piece of UI in the repository.
+
+Collapsing all three into one screen lifted mobile conversion 11%. Very little
+of the work was layout.
+
+## My first instinct was an accordion
+
+The cheap migration was to keep the three step components exactly as they were,
+stack them on a single route, and animate between them. Nothing about validation
+or submit had to change, and the Redux slices stayed put. I had it working in
+four days.
+
+It fell over on the first real requirement. Sequence had been doing hidden work
+in the old design: the address had to be complete before shipping options could
+be priced, and shipping had to be chosen before payment could be authorized for
+the right amount. Steps were not a UX convention, they were the coordination
+mechanism. Remove them and every part of the screen has to be valid *at the same
+time* — and simultaneously true is a much stronger claim than eventually true.
+
+So the accordion went in the bin and I rewrote checkout as one state machine.
+
+## The interesting state is the one after a partial write
+
+One screen means one submit, and one submit means the failure modes stop being
+edge cases. The case that shaped the whole design: the address saves, then the
+card declines.
+
+The server was already two calls — persist a draft order, then authorize payment
+against it — so a decline left real rows written while the user stared at a form
+they had every reason to think had failed entirely. Re-submitting from a clean
+slate would have created a second order.
+
+I made that state nameable instead of accidental:
+
+```ts
+// The stage that mattered was the one nobody drew in the mockups.
+type Checkout =
+  | { stage: "editing"; errors: FieldErrors }
+  | { stage: "submitting"; idempotencyKey: string }
+  | { stage: "partial"; orderId: string; failed: "payment" | "shipping" }
+  | { stage: "done"; orderId: string };
+```
+
+The idempotency key is minted once per submit attempt and survives retries, so
+retrying a declined card reuses the draft order rather than opening a new one.
+Recovery from `partial` re-enters the form with the saved fields locked, focus
+moved to the payment block, and one message about what actually needs redoing.
+The user only re-types the thing that failed.
+
+| Failure                | Server state    | What the screen did                        |
+| ---------------------- | --------------- | ------------------------------------------ |
+| Field validation       | nothing written | inline errors, submit stays enabled        |
+| Shipping repriced      | draft order     | re-quote in place, total flashes the delta |
+| Card declined          | draft order     | payment block only, address locked         |
+| Network drop mid-submit| unknown         | replay same key, server answers idempotently|
+
+The last row is the one that needed the key. Without it, a flaky mobile
+connection produces duplicate charges, and at 3M sessions a month "rare" is a
+daily support ticket.
+
+## Rolling it out without breaking the store
+
+The new checkout shipped behind a server-side flag keyed on a hash of the session
+id: 1%, then 5%, 25%, 50%, a week held at each rung. The guardrail metric was
+deliberately not conversion — it is too slow and too noisy to catch a regression.
+We watched authorization-failure rate and client errors per session, bucketed by
+flag arm, and the old three-step routes stayed live throughout so a rollback was a
+flag flip, not a deploy. Playwright ran both flows on every PR: double the CI
+time, worth it.
+
+## What one screen cost
+
+Three real things, none of which showed up in the conversion number.
+
+The form is long. On a 375px viewport the median session scrolls roughly four
+viewport heights where the old address step was under one and a half. A sticky
+summary and aggressive field collapsing help; they do not make it short.
+
+Attribution got worse. Three funnel steps used to be three page views, which is
+free, robust analytics. With one screen we had to synthesise stall signals from
+field focus and blur events, and those are noisier, easier to break, and much
+harder to argue with in a meeting than a page view.
+
+And the blast radius per deploy grew. Address, shipping, and payment now fail
+together. A bad release used to cost one third of the funnel; now it costs all of
+it.
+
+## What I would do differently
+
+I kept the old three-step routes alive as the rollback path, and then I left them
+there for fourteen months. Every change to tax rules, promo stacking, or shipping
+thresholds had to be made twice, and twice the two implementations quietly
+diverged — one of those shipped a wrong tax line to a subset of sessions for two
+days before anyone noticed.
+
+Keeping the old path was the right call for the rollout. Not putting a deletion
+date on it in the same pull request was not. I should have written the flag down
+with an expiry, and deleted the legacy routes the week the new flow crossed 50%.

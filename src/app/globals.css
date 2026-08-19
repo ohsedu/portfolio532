@@ -1,0 +1,395 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* ────────────────────────────────────────────────────────────────────────────
+ *  Dark mode strategy
+ *
+ *  Tailwind v4's `dark:` variant follows `prefers-color-scheme` by default.
+ *  We drive it from a class instead, because `next-themes` toggles
+ *  `<html class="dark">` and we want an explicit user choice to win over the
+ *  OS setting.
+ * ──────────────────────────────────────────────────────────────────────────── */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ────────────────────────────────────────────────────────────────────────────
+ *  Brand palette — #4f46e5 is Tailwind's indigo-600, so the whole indigo ramp
+ *  drops in around it for free. These are theme-independent: the light/dark
+ *  decisions happen in the semantic tokens below.
+ * ──────────────────────────────────────────────────────────────────────────── */
+@theme {
+  --color-brand-50: #eef2ff;
+  --color-brand-100: #e0e7ff;
+  --color-brand-200: #c7d2fe;
+  --color-brand-300: #a5b4fc;
+  --color-brand-400: #818cf8;
+  --color-brand-500: #6366f1;
+  --color-brand-600: #4f46e5; /* ← the one */
+  --color-brand-700: #4338ca;
+  --color-brand-800: #3730a3;
+  --color-brand-900: #312e81;
+  --color-brand-950: #1e1b4b;
+
+  /* Extra easing curves and timings, so motion feels like one system. */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quint: cubic-bezier(0.83, 0, 0.17, 1);
+
+  --animate-marquee: marquee 40s linear infinite;
+  --animate-shimmer: shimmer 2.5s ease-in-out infinite;
+  --animate-float: float 8s ease-in-out infinite;
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ *  Semantic tokens
+ *
+ *  Neutrals are nudged toward the brand hue (~245°) rather than pure grey, so
+ *  large flat areas feel related to the accent instead of washed out.
+ * ──────────────────────────────────────────────────────────────────────────── */
+:root {
+  --bg: #ffffff;
+  --bg-subtle: #f7f7fb;
+  --surface: #ffffff;
+  --surface-hover: #f4f4fa;
+  --surface-raised: #ffffff;
+
+  --fg: #12121c;
+  --fg-muted: #55556b;
+  --fg-subtle: #8a8aa0;
+
+  --border: #e6e6f0;
+  --border-strong: #d2d2e2;
+
+  /* Solid fill. White text on #4f46e5 is 6.3:1 — AA for body copy. */
+  --brand: #4f46e5;
+  --brand-fg: #ffffff;
+  --brand-hover: #4338ca;
+  /* Brand used *as text*. On white, #4f46e5 is 6.3:1. */
+  --brand-accent: #4f46e5;
+  --brand-soft: #eef2ff;
+  --brand-soft-fg: #3730a3;
+  --brand-ring: #4f46e5;
+
+  --shadow-color: 245 45% 20%;
+
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #08080f;
+  --bg-subtle: #0c0c16;
+  --surface: #12121f;
+  --surface-hover: #191928;
+  --surface-raised: #16162a;
+
+  --fg: #eeeef5;
+  --fg-muted: #a1a1b5;
+  --fg-subtle: #71718a;
+
+  --border: #22223a;
+  --border-strong: #313152;
+
+  --brand: #4f46e5;
+  --brand-fg: #ffffff;
+  --brand-hover: #6366f1;
+  /*
+   * #4f46e5 on near-black is only 3.1:1, which fails AA for body text, so the
+   * dark theme steps the *text* accent up to indigo-400 (6.6:1) while keeping
+   * indigo-600 for filled surfaces.
+   */
+  --brand-accent: #818cf8;
+  --brand-soft: #1c1b3a;
+  --brand-soft-fg: #c7d2fe;
+  --brand-ring: #818cf8;
+
+  --shadow-color: 245 60% 2%;
+
+  color-scheme: dark;
+}
+
+/* Map the semantic tokens into Tailwind's utility namespace.
+ * `inline` keeps utilities pointing at `var(--bg)` directly, so flipping the
+ * `.dark` class re-resolves them with no extra indirection. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-subtle: var(--bg-subtle);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-raised: var(--surface-raised);
+
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+
+  --color-brand: var(--brand);
+  --color-brand-fg: var(--brand-fg);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-soft-fg: var(--brand-soft-fg);
+  --color-ring: var(--brand-ring);
+
+  /*
+   * `--font-sans` is fed by next/font (see `src/app/[locale]/layout.tsx`).
+   * The Korean fallbacks matter: Latin webfonts carry no Hangul, so without
+   * them Korean text silently drops to a default serif on some platforms.
+   */
+  --font-sans:
+    var(--font-inter), "Pretendard Variable", Pretendard, -apple-system,
+    BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕",
+    system-ui, sans-serif;
+  --font-mono:
+    var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, "SF Mono",
+    Menlo, Consolas, monospace;
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ *  Base
+ * ──────────────────────────────────────────────────────────────────────────── */
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* Clear the sticky header when jumping to a section anchor. */
+    scroll-padding-top: 6rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Korean text has no inter-word breaks to lean on, so let it wrap on
+   * syllables and keep long English tokens from overflowing. */
+  :lang(ko) {
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background-color: var(--brand);
+    color: var(--brand-fg);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--brand-ring);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Only show the ring for keyboard users, never on mouse clicks. */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 99px;
+    border: 2px solid var(--bg);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--fg-subtle);
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ *  Utilities
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+/* Text filled with the brand gradient. */
+@utility text-gradient {
+  background-image: linear-gradient(
+    110deg,
+    var(--fg) 0%,
+    var(--brand-accent) 55%,
+    var(--fg) 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* Hairline grid, used behind the hero. */
+@utility bg-grid {
+  background-image:
+    linear-gradient(to right, var(--border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* Dotted variant, lighter than the grid. */
+@utility bg-dots {
+  background-image: radial-gradient(var(--border-strong) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* A soft indigo bloom. Pair with `absolute` and a size. */
+@utility bloom {
+  background: radial-gradient(
+    circle at center,
+    color-mix(in oklab, var(--brand) 40%, transparent) 0%,
+    transparent 70%
+  );
+  filter: blur(64px);
+}
+
+/* 1px border that reads as a lit edge rather than a flat line. */
+@utility ring-edge {
+  box-shadow:
+    inset 0 1px 0 0 color-mix(in oklab, white 8%, transparent),
+    0 1px 2px 0 hsl(var(--shadow-color) / 0.06),
+    0 8px 24px -8px hsl(var(--shadow-color) / 0.12);
+}
+
+/*
+ * Rebinds @tailwindcss/typography to the semantic tokens.
+ *
+ * Pair with `prose`: `class="prose prose-portfolio"`. This replaces the usual
+ * `prose-neutral dark:prose-invert` combination — because every value below is a
+ * token that already flips with the `.dark` class, one declaration covers both
+ * themes and the article matches the rest of the site instead of typography's
+ * built-in greys.
+ */
+@utility prose-portfolio {
+  --tw-prose-body: var(--fg-muted);
+  --tw-prose-headings: var(--fg);
+  --tw-prose-lead: var(--fg-muted);
+  --tw-prose-links: var(--brand-accent);
+  --tw-prose-bold: var(--fg);
+  --tw-prose-counters: var(--fg-subtle);
+  --tw-prose-bullets: var(--border-strong);
+  --tw-prose-hr: var(--border);
+  --tw-prose-quotes: var(--fg);
+  --tw-prose-quote-borders: var(--brand);
+  --tw-prose-captions: var(--fg-subtle);
+  --tw-prose-kbd: var(--fg);
+  --tw-prose-code: var(--fg);
+  --tw-prose-pre-code: var(--fg);
+  --tw-prose-pre-bg: var(--bg-subtle);
+  --tw-prose-th-borders: var(--border-strong);
+  --tw-prose-td-borders: var(--border);
+}
+
+/*
+ * Shiki dual-theme code blocks.
+ *
+ * With `defaultColor: false` Shiki writes both palettes onto every token as
+ * `--shiki-light` / `--shiki-dark` and applies neither. These two rules pick the
+ * side that matches the active theme, so a theme switch is a CSS variable change
+ * rather than a re-highlight.
+ */
+@layer base {
+  /*
+   * Only `color` is taken from Shiki. Its `--shiki-*-bg` values are deliberately
+   * ignored: the <pre> already carries `bg-bg-subtle`, and letting the
+   * highlighter paint its own surface would put a #fff or #0d1117 slab in the
+   * middle of a tokenized page.
+   */
+  .shiki,
+  .shiki span {
+    color: var(--shiki-light);
+  }
+
+  .dark .shiki,
+  .dark .shiki span {
+    color: var(--shiki-dark);
+  }
+}
+
+/* Fades the far edge of a horizontally scrolling row. */
+@utility mask-fade-x {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 5%,
+    black 95%,
+    transparent
+  );
+}
+
+@utility mask-fade-b {
+  mask-image: linear-gradient(to bottom, black 60%, transparent);
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ *  Keyframes
+ * ──────────────────────────────────────────────────────────────────────────── */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes shimmer {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-18px) scale(1.03);
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ *  Reduced motion
+ *
+ *  Kill decorative animation, but leave `opacity` transitions alone so
+ *  reveal-on-scroll content still becomes visible rather than staying at 0.
+ * ──────────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

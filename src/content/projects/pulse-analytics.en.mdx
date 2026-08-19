@@ -1,0 +1,113 @@
+The dashboard had one loading spinner and it owned the whole screen. A customer
+success manager opening Pulse on a Monday morning waited 4.1 seconds before any
+pixel of content existed — no header, no date range, no empty chart frame. Just
+the spinner, sitting on top of an event table that had grown past nine million
+rows.
+
+Pulse is the reporting surface of a marketing automation platform. Six of us
+worked on it; I owned the frontend. The rebuild that took LCP from **4.1s to
+1.3s** did not come from the thing I tried first.
+
+## The obvious fix, and its ceiling
+
+My first instinct was that this was a bundle problem. The route shipped every
+chart type, every date-picker locale and all of D3 up front, so I spent two
+weeks doing the respectable thing: route-level code splitting, dynamic imports
+for the chart layer, three date libraries down to one.
+
+The numbers moved. Initial JS went from 412 kB to 238 kB gzipped. LCP went from
+4.1s to 3.6s.
+
+Half a second, for two weeks. I had been optimising the wrong half of the
+waterfall. Once I stopped reading bundle treemaps and read the network panel
+instead it was obvious: the document response was blocked for 2.6s on the
+server, because nothing could render until a single `getDashboardSummary` query
+returned. It joined events to campaigns to attribution touchpoints and computed
+all six panels at once, so the client could hydrate in one pass.
+
+Every byte I removed from the bundle was a byte that had been downloading
+*behind* a 2.6-second wall.
+
+## Splitting the query instead of the bundle
+
+The fix was to stop treating the dashboard as one payload.
+
+**Postgres first.** I broke the monolithic summary into per-panel queries and
+gave the two slowest of them a pre-aggregated home: a daily rollup table
+maintained by a scheduled job, so the headline totals no longer scanned raw
+events at request time.
+
+```sql
+-- The headline panel now reads ~900 rollup rows instead of ~9M event rows.
+select day, sum(sessions) as sessions, sum(conversions) as conversions
+from daily_event_rollup
+where workspace_id = $1 and day between $2 and $3
+group by day order by day;
+```
+
+That took the headline query from 2.6s to 40ms. The funnel and cohort panels
+stayed slow — 1.4s and 2.1s — because they need raw rows over arbitrary date
+ranges, and no rollup shape I tried covered them without lying about the
+numbers.
+
+**Then streaming.** Since the panels no longer shared a query, they no longer
+had to share a paint. The App Router page became a server component that
+returns the shell immediately and suspends each panel independently.
+
+```tsx
+// The shell is static and paints from the streamed first chunk.
+<DashboardShell range={range}>
+  <Suspense fallback={<PanelSkeleton rows={1} />}>
+    <HeadlinePanel range={range} />   {/* ~40ms  */}
+  </Suspense>
+  <Suspense fallback={<PanelSkeleton rows={6} />}>
+    <FunnelPanel range={range} />     {/* ~1.4s  */}
+  </Suspense>
+</DashboardShell>
+```
+
+The result, measured on a throttled 4G profile:
+
+| What the user sees      | Before | After |
+| ----------------------- | ------ | ----- |
+| Shell and nav           | 4.1s   | 0.4s  |
+| First real chart (LCP)  | 4.1s   | 1.3s  |
+| Cohort panel complete   | 4.1s   | 2.4s  |
+
+The slowest panel got *slower* in wall-clock terms. Nobody complained, because
+it was no longer standing between a user and their morning check.
+
+> The lesson I keep applying: deciding what to show when moves perceived
+> performance far more than shaving the bundle does. The bundle work was worth
+> 0.5s. The ordering work was worth 2.3s.
+
+## What it cost
+
+*Loading states multiplied.* One spinner became six skeletons, each of which had
+to reserve the exact height of its panel or the streamed insertions caused
+layout shift. Getting CLS back under 0.1 took longer than the streaming work.
+
+*Cache invalidation got harder.* One query had one cache key. Six panels have
+six, plus a rollup with its own freshness window, so "the number is stale"
+became a question with several possible answers. I added a footer printing each
+panel's data timestamp, mostly so support could answer it without me.
+
+*The charts had to accept partial data.* Our D3 axes derived their domain from
+the data extent, which assumes a complete series. With panels arriving
+separately, two charts sharing an x-axis could disagree about scale mid-stream.
+I moved the shared domain into the server response so the axis is decided once,
+before either chart renders.
+
+## What I would do differently
+
+I built the rollup job as a cron that recomputes the trailing 90 days every
+hour. Simple was the right call at the start, but it means the headline number
+can be an hour behind the funnel panel underneath it, which reads live rows.
+That inconsistency is visible on one screen and I have had to explain it more
+than once. An incremental rollup keyed on ingestion would have cost a day of
+work and removed a category of confusion I am still paying interest on.
+
+I also shipped the streaming change without per-panel timing in production. For
+two months I could not answer "which panel is slow for *this* customer" — large
+workspaces profiled nothing like my seed data. Instrumentation should land in
+the same PR as the thing it measures.

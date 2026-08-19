@@ -1,0 +1,72 @@
+Six product teams were each maintaining their own button. Not metaphorically —
+there were six `Button` implementations in the monorepo, and they disagreed about
+focus rings, disabled opacity, and whether a loading spinner replaced the label
+or sat next to it.
+
+Atlas is what replaced them. It is a 40-component library that every one of
+those teams now builds against, and it ships a token layer that changes all six
+products from one file.
+
+## The problem was not the components
+
+My first instinct was wrong. I assumed the fix was to write really good
+components and then convince people to adopt them. I spent three weeks on a
+beautiful `Button` and almost nobody switched.
+
+The reason was boring: adopting it meant a visual diff on pages those teams
+owned, and nobody wants to sign off on a diff they did not ask for. The
+component was not the obstacle. The migration risk was.
+
+So I inverted the order of work.
+
+## Tokens first, components second
+
+Instead of shipping components and asking teams to adopt them, I shipped a
+**token layer** that reproduced each product's existing look exactly. No visual
+change at all — the point was to make the change invisible so it could land
+without a design review.
+
+```css
+/* Every product imported this and looked identical afterwards. */
+@theme inline {
+  --color-surface: var(--surface);
+  --color-fg: var(--fg);
+  --color-brand: var(--brand);
+}
+```
+
+Once every product was reading from tokens, a design change became a
+one-file change instead of six pull requests. That earned the credibility to
+replace components one at a time, and this time the teams asked for it.
+
+> The lesson I keep reusing: adoption is a risk problem before it is a quality
+> problem. Reduce the risk of saying yes and quality arguments start landing.
+
+## What the 40 components actually cost
+
+The interesting number is not 40. It is the test surface:
+
+| Layer            | Count | Where the time went                    |
+| ---------------- | ----- | -------------------------------------- |
+| Primitives       | 12    | Focus management, keyboard behaviour   |
+| Compositions     | 19    | Documenting when *not* to use them     |
+| Layout utilities | 9     | Almost free; they are CSS with a name  |
+
+The primitives took the longest per component by a wide margin, and it was all
+keyboard and screen-reader work — the parts you cannot see in a screenshot.
+Every primitive has a Playwright test that tabs through it, because that is the
+behaviour most likely to regress silently.
+
+## What I would do differently
+
+Two things.
+
+I versioned Atlas with the monorepo, so a breaking change forced every product
+to update at once. That was the wrong call — teams should have been able to
+absorb a major version on their own schedule. Independent versioning would have
+cost some consistency and bought a lot of goodwill.
+
+And I wrote the docs last. Storybook existed from day one, but the "when should
+I reach for this" prose came months later, and in the gap people made reasonable
+wrong guesses that I then had to unpick. Writing the guidance while the decision
+is fresh is cheaper than correcting the misuse later.

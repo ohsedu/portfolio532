@@ -85,7 +85,7 @@ export function Skills({ locale }: { locale: Locale }) {
           {/* Legend for the tick marks — without it the indicator is a shape
               with no stated scale. */}
           <div className="border-line bg-surface/60 ring-edge rounded-2xl border px-5 py-4">
-            <p className="text-fg-subtle font-mono text-[10.5px] tracking-[0.14em] uppercase">
+            <p className="text-fg-subtle label-xs">
               {dict.skills.levelLabel}
             </p>
             {/* Both ends of the ramp are drawn, so the mapping from tick count

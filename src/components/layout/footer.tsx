@@ -2,6 +2,7 @@ import { ArrowUp } from "lucide-react";
 import Link from "next/link";
 
 import { BrandIcon } from "@/components/icons/brand";
+import { Logo } from "@/components/icons/logo";
 import { Container } from "@/components/ui/section";
 import { socials } from "@/lib/data/profile";
 import { getDictionary, type Locale } from "@/lib/i18n";
@@ -28,9 +29,7 @@ export function Footer({ locale }: { locale: Locale }) {
               href={home}
               className="focus-visible:outline-ring inline-flex items-center gap-2.5 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4"
             >
-              <span className="bg-brand text-brand-fg grid size-8 place-items-center rounded-lg font-mono text-xs font-bold tracking-tighter">
-                {person.initials}
-              </span>
+              <Logo className="size-8 shrink-0" />
               <span className="text-sm font-semibold tracking-tight">
                 {person.name[locale]}
               </span>
@@ -64,7 +63,7 @@ export function Footer({ locale }: { locale: Locale }) {
             <nav aria-labelledby="footer-nav-sections">
               <h2
                 id="footer-nav-sections"
-                className="text-fg-subtle mb-3 font-mono text-[11px] tracking-[0.18em] uppercase"
+                className="text-fg-subtle mb-3 label-sm"
               >
                 {dict.nav.home}
               </h2>
@@ -85,7 +84,7 @@ export function Footer({ locale }: { locale: Locale }) {
             <nav aria-labelledby="footer-nav-projects">
               <h2
                 id="footer-nav-projects"
-                className="text-fg-subtle mb-3 font-mono text-[11px] tracking-[0.18em] uppercase"
+                className="text-fg-subtle mb-3 label-sm"
               >
                 {dict.projects.label}
               </h2>
@@ -114,7 +113,7 @@ export function Footer({ locale }: { locale: Locale }) {
             </nav>
 
             <div>
-              <h2 className="text-fg-subtle mb-3 font-mono text-[11px] tracking-[0.18em] uppercase">
+              <h2 className="text-fg-subtle mb-3 label-sm">
                 {dict.contact.label}
               </h2>
               <ul className="space-y-2.5">

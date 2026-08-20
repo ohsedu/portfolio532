@@ -79,7 +79,7 @@ export function AboutBio({
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-controls={regionId}
-        className="mt-6 -ml-4 font-mono text-[11px] tracking-[0.14em] uppercase"
+        className="label-xs mt-6 -ml-4"
       >
         {open ? dict.about.readLess : dict.about.readMore}
         <ChevronDown

@@ -132,16 +132,25 @@
 
   /*
    * `--font-sans` is fed by next/font (see `src/app/[locale]/layout.tsx`).
-   * The Korean fallbacks matter: Latin webfonts carry no Hangul, so without
-   * them Korean text silently drops to a default serif on some platforms.
+   * Inter carries no Hangul, so every Korean character falls to the next entry.
+   * That entry is a webfont now rather than whatever the machine happens to
+   * have; the local names behind it are the offline path, in the order they
+   * would have been the only path before.
    */
   --font-sans:
-    var(--font-inter), "Pretendard Variable", Pretendard, -apple-system,
-    BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕",
-    system-ui, sans-serif;
+    var(--font-inter), var(--font-noto-sans-kr), "Pretendard Variable",
+    Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+    "Malgun Gothic", "맑은 고딕", system-ui, sans-serif;
+  /*
+   * The Korean face is in the mono stack too, second to last. Nothing ahead of
+   * it carries Hangul, so without it Windows resolves the generic `monospace`
+   * to 굴림체 — a bitmap-era face — for every Korean character in a badge or a
+   * label. Korean in a mono context stops being monospaced as a result, which is
+   * the right trade.
+   */
   --font-mono:
     var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, "SF Mono",
-    Menlo, Consolas, monospace;
+    Menlo, Consolas, var(--font-noto-sans-kr), monospace;
 }
 
 /* ────────────────────────────────────────────────────────────────────────────
@@ -225,6 +234,77 @@
 /* ────────────────────────────────────────────────────────────────────────────
  *  Utilities
  * ──────────────────────────────────────────────────────────────────────────── */
+
+/* ────────────────────────────────────────────────────────────────────────────
+ *  Micro labels
+ *
+ *  The eyebrow above a heading, the <dt> in a spec list, a column heading in the
+ *  footer. One utility per size, so all of the site's small type moves together.
+ *
+ *  Latin gets the mono face, wide tracking and uppercase — that combination is
+ *  where the look comes from. Korean gets none of it, for three separate
+ *  reasons:
+ *
+ *    · the mono stack carries no Hangul, so the browser falls back for it;
+ *    · Hangul has no case, so `uppercase` buys nothing; and
+ *    · tracking pushes syllable blocks apart, which reads as a spacing bug
+ *      rather than as a typographic choice.
+ *
+ *  So `:lang(ko)` switches to the sans face, drops the tracking to a hair, and
+ *  adds weight and a little size. A Hangul glyph packs several strokes into the
+ *  box a Latin letter fills with one or two, so matching Latin's size and weight
+ *  at 10–11px leaves it visibly thinner than the type beside it.
+ *
+ *  `:lang(ko)` matches `lang="ko-KR"` on <html>: the match is on the primary
+ *  subtag, so the region does not have to be spelled out here.
+ * ──────────────────────────────────────────────────────────────────────────── */
+@utility label-xs {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+
+  &:lang(ko) {
+    font-family: var(--font-sans);
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    text-transform: none;
+  }
+}
+
+@utility label-sm {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+
+  &:lang(ko) {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    text-transform: none;
+  }
+}
+
+/* The eyebrow is the only label that is also a colour accent, so it carries a
+   little more weight than the two above even in Latin. */
+@utility label-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+
+  &:lang(ko) {
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: none;
+  }
+}
 
 /* Text filled with the brand gradient. */
 @utility text-gradient {

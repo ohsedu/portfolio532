@@ -131,7 +131,7 @@ export function Hero({ locale }: { locale: Locale }) {
                   }
                 >
                   <div className="px-5 py-5 lg:px-8 lg:py-6">
-                    <dt className="text-fg-subtle font-mono text-[10.5px] tracking-[0.14em] uppercase">
+                    <dt className="text-fg-subtle label-xs">
                       {item.label}
                     </dt>
                     <dd className="text-brand-accent mt-1.5 font-mono text-2xl font-semibold tracking-tight lg:text-3xl">
@@ -148,7 +148,7 @@ export function Hero({ locale }: { locale: Locale }) {
         <Reveal delay={0.45} className="mt-20 hidden sm:block">
           <a
             href="#about"
-            className="text-fg-subtle hover:text-fg focus-visible:outline-ring group inline-flex items-center gap-2 rounded-full font-mono text-[11px] tracking-[0.18em] uppercase transition-colors focus-visible:outline-2 focus-visible:outline-offset-4"
+            className="text-fg-subtle hover:text-fg focus-visible:outline-ring group inline-flex items-center gap-2 rounded-full label-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-4"
           >
             <span className="border-line group-hover:border-brand grid size-8 place-items-center rounded-full border transition-colors">
               <ArrowDown

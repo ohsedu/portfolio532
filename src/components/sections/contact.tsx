@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 /** Matches the stat labels in the hero, so small type reads as one system. */
 const termClasses =
-  "text-fg-subtle font-mono text-[10.5px] tracking-[0.14em] uppercase";
+  "label-xs text-fg-subtle";
 
 /**
  * The closing section: the direct channel first, the form second.

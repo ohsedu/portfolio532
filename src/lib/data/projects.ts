@@ -11,6 +11,7 @@ import type { Locale, LocalizedString } from "@/lib/i18n/config";
 /** Filter chips on the projects section, in display order. */
 export const projectTags = [
   "web",
+  "realtime",
   "design-system",
   "performance",
   "data-viz",
@@ -56,6 +57,37 @@ export type Project = {
 };
 
 export const projects: Project[] = [
+  {
+    slug: "chat532",
+    title: "chat532",
+    tagline: {
+      ko: "서버 없이 돌아가는 실시간 채팅",
+      en: "A realtime chat app with no server of its own",
+    },
+    description: {
+      ko: "여섯 글자 코드로 방에 들어가는 채팅입니다. 서버를 두지 않고 브라우저가 Supabase에 직접 붙기 때문에, 보안 경계 전체가 SQL로 쓴 RLS 정책이 됩니다. 접속 중인 사람은 Realtime이, 앱을 닫아 둔 사람은 Edge Function이 보내는 웹 푸시가 담당합니다.",
+      en: "A chat you enter with a six-character code. There is no server of my own: the browser talks to Supabase directly, so the whole security boundary is a set of RLS policies written in SQL. Realtime covers whoever is online, and an edge function pushes to whoever is not.",
+    },
+    year: 2026,
+    role: {
+      ko: "개인 프로젝트 — 설계부터 운영까지",
+      en: "Solo project — schema, UI and operations",
+    },
+    team: { ko: "1명", en: "1 person" },
+    stack: [
+      "Next.js",
+      "React",
+      "TypeScript",
+      "Supabase",
+      "PostgreSQL RLS",
+      "Web Push",
+    ],
+    tags: ["web", "realtime"],
+    featured: true,
+    caseStudy: true,
+    links: { live: "https://chat.ohsedu.site" },
+    accent: ["#4f46e5", "#22d3ee"],
+  },
   {
     slug: "atlas-design-system",
     title: "Atlas",
@@ -224,6 +256,7 @@ export function getUsedTags(): ProjectTag[] {
 /** Human label for a tag chip. */
 export const projectTagLabels: Record<ProjectTag, LocalizedString> = {
   web: { ko: "웹", en: "Web" },
+  realtime: { ko: "실시간", en: "Realtime" },
   "design-system": { ko: "디자인 시스템", en: "Design system" },
   performance: { ko: "성능", en: "Performance" },
   "data-viz": { ko: "데이터 시각화", en: "Data viz" },

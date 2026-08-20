@@ -92,7 +92,7 @@ export function About({ locale }: { locale: Locale }) {
         {/* ── At a glance ───────────────────────────────────────────────────── */}
         <Reveal from="left" delay={0.12} className="lg:col-span-5">
           <aside className="border-line bg-surface ring-edge overflow-hidden rounded-2xl border">
-            <h3 className="border-line text-fg-subtle border-b px-6 py-4 font-mono text-[11px] tracking-[0.18em] uppercase">
+            <h3 className="border-line text-fg-subtle border-b px-6 py-4 label-sm">
               {dict.about.factsHeading}
             </h3>
 
@@ -103,7 +103,7 @@ export function About({ locale }: { locale: Locale }) {
                   {/* `min-w-0` lets long Korean values wrap instead of pushing
                       the icon out of the card. */}
                   <div className="min-w-0">
-                    <dt className="text-fg-subtle font-mono text-[10.5px] tracking-[0.14em] uppercase">
+                    <dt className="text-fg-subtle label-xs">
                       {fact.term}
                     </dt>
                     <dd className="mt-1.5 text-sm leading-relaxed">

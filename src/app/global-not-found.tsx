@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Noto_Sans_KR } from "next/font/google";
 
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { buttonClasses } from "@/components/ui/button";
@@ -43,6 +43,14 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+/* This page bypasses the locale layout, so it has to load the Korean face
+   itself — half of what it says is Korean. See the note in that layout. */
+const notoSansKr = Noto_Sans_KR({
+  variable: "--font-noto-sans-kr",
+  display: "swap",
+  preload: false,
+});
+
 export const metadata: Metadata = {
   title: "404",
   /* Next already injects noindex for 404 responses; this states the intent. */
@@ -59,7 +67,7 @@ export default function GlobalNotFound() {
        */
       lang="ko"
       suppressHydrationWarning
-      className={`${inter.variable} ${jetbrainsMono.variable}`}
+      className={`${inter.variable} ${jetbrainsMono.variable} ${notoSansKr.variable}`}
     >
       <body className="bg-bg text-fg min-h-dvh antialiased">
         {/* Restores the user's saved theme, which the bypassed layout would

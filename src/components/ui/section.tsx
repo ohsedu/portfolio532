@@ -102,7 +102,7 @@ export function SectionHeader({
           <p
             aria-hidden
             className={cn(
-              "mb-4 flex items-center gap-3 font-mono text-xs font-medium tracking-[0.2em] text-brand-accent uppercase",
+              "label-eyebrow text-brand-accent mb-4 flex items-center gap-3",
               align === "center" && "justify-center",
             )}
           >

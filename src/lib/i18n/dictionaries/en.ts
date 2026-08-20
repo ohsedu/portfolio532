@@ -40,6 +40,8 @@ export const en = {
     light: "Light",
     dark: "Dark",
     system: "System",
+    /* Composed as "System · Follows your OS setting — Dark". */
+    systemHint: "Follows your OS setting",
   },
 
   locale: {

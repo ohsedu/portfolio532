@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 
+import { Logo } from "@/components/icons/logo";
 import { useDictionary, useLocale } from "@/components/layout/dictionary-provider";
 import { LocaleToggle } from "@/components/layout/locale-toggle";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
@@ -112,9 +113,7 @@ export function Header() {
           href={home}
           className="focus-visible:outline-ring group flex items-center gap-2.5 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4"
         >
-          <span className="bg-brand text-brand-fg grid size-8 place-items-center rounded-lg font-mono text-xs font-bold tracking-tighter transition-transform group-hover:scale-105">
-            {person.initials}
-          </span>
+          <Logo className="size-8 shrink-0 transition-transform group-hover:scale-105" />
           <span className="text-sm font-semibold tracking-tight">
             {person.name[locale]}
           </span>
@@ -216,9 +215,11 @@ export function Header() {
                 ))}
               </ul>
 
-              <div className="mt-6 flex items-center justify-between gap-3">
+              {/* `labelled`: there is no hover on a phone, so the theme
+                  options name themselves here instead of in a tooltip. */}
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
                 <LocaleToggle />
-                <ThemeToggle />
+                <ThemeToggle labelled />
               </div>
             </nav>
           </motion.div>

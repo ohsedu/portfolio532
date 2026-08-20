@@ -2,6 +2,8 @@ import type { MDXContent } from "mdx/types";
 
 import atlasEn from "@/content/projects/atlas-design-system.en.mdx";
 import atlasKo from "@/content/projects/atlas-design-system.ko.mdx";
+import chat532En from "@/content/projects/chat532.en.mdx";
+import chat532Ko from "@/content/projects/chat532.ko.mdx";
 import checkoutEn from "@/content/projects/checkout-rebuild.en.mdx";
 import checkoutKo from "@/content/projects/checkout-rebuild.ko.mdx";
 import pulseEn from "@/content/projects/pulse-analytics.en.mdx";
@@ -28,6 +30,7 @@ import { defaultLocale, type Locale } from "@/lib/i18n/config";
  *   3. set `caseStudy: true` on that project in `src/lib/data/projects.ts`
  */
 const caseStudies: Record<string, Partial<Record<Locale, MDXContent>>> = {
+  chat532: { ko: chat532Ko, en: chat532En },
   "atlas-design-system": { ko: atlasKo, en: atlasEn },
   "pulse-analytics": { ko: pulseKo, en: pulseEn },
   "checkout-rebuild": { ko: checkoutKo, en: checkoutEn },

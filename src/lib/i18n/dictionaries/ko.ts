@@ -38,6 +38,7 @@ export const ko: Dictionary = {
     light: "라이트",
     dark: "다크",
     system: "시스템",
+    systemHint: "운영체제 설정을 따릅니다",
   },
 
   locale: {

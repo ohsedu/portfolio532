@@ -7,14 +7,17 @@ import type { LocalizedString } from "./i18n/config";
  * ──────────────────────────────────────────────────────────────────────────── */
 
 export const person = {
+  /*
+   * There is no `initials` field any more: the logo is the 532 drawing in
+   * scripts/generate-icons.mjs, which emits both the icon files and
+   * src/components/icons/logo.tsx. Run `npm run icons` after changing it.
+   */
+
   /** Displayed in the header, footer, page titles and structured data. */
   name: {
     ko: "오세두",
     en: "SeDu Oh",
   } satisfies LocalizedString,
-
-  /** Two or three letters for the logo mark. */
-  initials: "SD",
 
   email: "aaa31235663@gmail.com",
 

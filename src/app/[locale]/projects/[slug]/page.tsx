@@ -106,7 +106,7 @@ export default async function CaseStudyPage({
           <dl className="mt-10 flex flex-wrap gap-x-12 gap-y-6">
             {facts.map((fact) => (
               <div key={fact.term}>
-                <dt className="text-fg-subtle font-mono text-[10.5px] tracking-[0.14em] uppercase">
+                <dt className="text-fg-subtle label-xs">
                   {fact.term}
                 </dt>
                 <dd className="mt-1.5 text-sm font-medium">{fact.detail}</dd>
@@ -114,7 +114,7 @@ export default async function CaseStudyPage({
             ))}
 
             <div className="min-w-0">
-              <dt className="text-fg-subtle font-mono text-[10.5px] tracking-[0.14em] uppercase">
+              <dt className="text-fg-subtle label-xs">
                 {dict.projects.metaStack}
               </dt>
               <dd className="mt-2">
@@ -182,7 +182,7 @@ export default async function CaseStudyPage({
               rel="prev"
               className="group focus-visible:outline-ring rounded-xl p-5 transition-colors hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2"
             >
-              <span className="text-fg-subtle flex items-center gap-1.5 font-mono text-[10.5px] tracking-[0.14em] uppercase">
+              <span className="text-fg-subtle flex items-center gap-1.5 label-xs">
                 <ArrowLeft className="size-3" aria-hidden />
                 {dict.projects.prevProject}
               </span>
@@ -200,7 +200,7 @@ export default async function CaseStudyPage({
               rel="next"
               className="group focus-visible:outline-ring rounded-xl p-5 text-right transition-colors hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 sm:justify-self-end"
             >
-              <span className="text-fg-subtle flex items-center justify-end gap-1.5 font-mono text-[10.5px] tracking-[0.14em] uppercase">
+              <span className="text-fg-subtle flex items-center justify-end gap-1.5 label-xs">
                 {dict.projects.nextProject}
                 <ArrowRight className="size-3" aria-hidden />
               </span>

@@ -63,7 +63,7 @@ export default async function ProjectsIndexPage({
       */}
       <p
         aria-hidden
-        className="text-brand-accent mb-4 flex items-center gap-3 font-mono text-xs font-medium tracking-[0.2em] uppercase"
+        className="label-eyebrow text-brand-accent mb-4 flex items-center gap-3"
       >
         <span className="bg-brand-accent/50 h-px w-8" />
         {dict.projects.label}

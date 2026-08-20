@@ -1,7 +1,22 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { ImageResponse } from "next/og";
 
 import { getDictionary, hasLocale, locales, type Locale } from "@/lib/i18n";
 import { brand, person, siteUrl } from "@/lib/site";
+
+/*
+ * The logo, read off disk at build time and inlined as a data URI.
+ *
+ * It has to be inline. This route is prerendered, so at the moment the card is
+ * drawn there is no origin to fetch `/icon.svg` from — and Satori resolves an
+ * `<img>` data URI with no network request at all. Reading the very file the
+ * favicon is built from keeps the share card and the browser tab on one mark.
+ */
+const logoDataUri = `data:image/svg+xml;base64,${readFileSync(
+  join(process.cwd(), "src", "app", "icon.svg"),
+).toString("base64")}`;
 
 /*
  * The link-preview card for /ko and /en.
@@ -63,23 +78,15 @@ export default async function OpenGraphImage({
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 68,
-              height: 68,
-              borderRadius: 18,
-              background: brand.color,
-              color: "#ffffff",
-              fontSize: 27,
-              fontWeight: 700,
-              letterSpacing: "-0.05em",
-            }}
-          >
-            {person.initials}
-          </div>
+          {/* Satori has no next/image; a plain <img> is the only option here. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={logoDataUri}
+            alt=""
+            width={68}
+            height={68}
+            style={{ borderRadius: 18 }}
+          />
 
           <div
             style={{

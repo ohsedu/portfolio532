@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Noto_Sans_KR } from "next/font/google";
 import { notFound } from "next/navigation";
 
 import { DictionaryProvider } from "@/components/layout/dictionary-provider";
@@ -32,6 +32,24 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-jetbrains-mono",
   display: "swap",
+});
+
+/*
+ * The Korean face. Inter and JetBrains Mono are Latin-only, so without this
+ * every Hangul character on the page was resolved by the OS — Malgun Gothic at
+ * best, 굴림체 wherever the stack ended at generic `monospace`.
+ *
+ * No `subsets`, and `preload: false` to go with it. Google serves CJK families
+ * as ~100 numbered `unicode-range` slices rather than the named subsets
+ * next/font wants, so there is nothing to name; with preloading off, next/font
+ * keeps all of the slices and the browser downloads only the two or three the
+ * page's Hangul actually lands in. Preloading them all would be ~1MB of font for
+ * a page that uses a few hundred syllables.
+ */
+const notoSansKr = Noto_Sans_KR({
+  variable: "--font-noto-sans-kr",
+  display: "swap",
+  preload: false,
 });
 
 /**
@@ -118,7 +136,7 @@ export default async function LocaleLayout({
        * without it every route change animates a long smooth scroll.
        */
       data-scroll-behavior="smooth"
-      className={`${inter.variable} ${jetbrainsMono.variable}`}
+      className={`${inter.variable} ${jetbrainsMono.variable} ${notoSansKr.variable}`}
     >
       <body className="bg-bg text-fg min-h-dvh antialiased">
         <ThemeProvider>

@@ -137,7 +137,7 @@ export function Experience({ locale }: { locale: Locale }) {
                       {/* Dates lead the card, matching the eyebrow rhythm of
                           `SectionHeader`. Current roles say so in words, not
                           just with the pulsing node. */}
-                      <p className="text-fg-subtle flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-[11px] tracking-[0.14em] uppercase">
+                      <p className="text-fg-subtle flex flex-wrap items-center gap-x-3 gap-y-2 label-sm">
                         <span>
                           <time dateTime={job.start}>
                             {formatMonth(job.start, locale)}
@@ -195,7 +195,7 @@ export function Experience({ locale }: { locale: Locale }) {
                       </p>
 
                       <div className="mt-6">
-                        <h4 className="text-fg-subtle font-mono text-[10.5px] tracking-[0.14em] uppercase">
+                        <h4 className="text-fg-subtle label-xs">
                           {dict.experience.highlightsLabel}
                         </h4>
                         <ul className="text-fg-muted marker:text-brand-accent/70 mt-3 list-disc space-y-2.5 pl-5 text-sm leading-relaxed">

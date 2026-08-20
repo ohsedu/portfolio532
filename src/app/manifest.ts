@@ -10,10 +10,18 @@ import { brand, person } from "@/lib/site";
  * manifest format is not locale-aware, so it uses the default language and
  * points at that locale's start URL.
  *
- * The icons are the generated `icon.tsx` / `apple-icon.tsx` routes, declared at
- * their true sizes. That covers the browser tab and a basic install prompt; a
- * store-grade PWA would additionally want real 192px and 512px PNGs committed
- * to `public/` and listed here.
+ * The icons come from `scripts/generate-icons.mjs` (`npm run icons`) — edit the
+ * constants there, not the images.
+ *
+ * These are the `public/` copies rather than the hashed URLs Next gives the
+ * `src/app` icon files. A manifest is data, not markup: it needs paths that stay
+ * the same between builds so an already-installed home-screen app keeps
+ * resolving them.
+ *
+ * `maskable` is a separate file. Android may crop to a circle, and it guarantees
+ * only the middle 80% — the drawing at full size reaches past that, so the
+ * generator writes a scaled-down copy instead of shrinking every icon to suit
+ * one platform.
  */
 export default function manifest(): MetadataRoute.Manifest {
   const dict = getDictionary(defaultLocale);
@@ -29,8 +37,14 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: brand.color,
     lang: defaultLocale,
     icons: [
-      { src: "/icon", sizes: "32x32", type: "image/png" },
-      { src: "/apple-icon", sizes: "180x180", type: "image/png" },
+      { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      {
+        src: "/icon-maskable-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
+      },
     ],
   };
 }

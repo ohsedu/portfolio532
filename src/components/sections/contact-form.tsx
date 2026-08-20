@@ -27,7 +27,7 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * kept for genuinely decorative captions.
  */
 const labelClasses =
-  "text-fg-muted mb-2 block font-mono text-[11.5px] tracking-[0.14em] uppercase";
+  "label-sm text-fg-muted mb-2 block";
 
 /** Sizing is added per control; `h-12` / `min-h-32` clear the 44px touch floor. */
 const controlClasses =

@@ -1,0 +1,119 @@
+I wanted a chat room my friends and I could actually use, under two conditions:
+it must not cost anything to run, and joining must take a link and a
+six-character code — no app store, no password.
+
+So there is no server. Vercel serves static files, the browser opens a WebSocket
+straight to Supabase, and every operation — signing in, creating a room, sending
+a message, marking it read — goes from the client to Postgres. No route handlers,
+no server actions. That one decision settles another: **the security boundary
+stops being my code and becomes SQL.**
+
+## The anon key is supposed to be public
+
+There is no server to inspect requests, because the browser holds the key and
+talks to the database itself. The policies *are* the API.
+
+```sql
+-- You see the rooms you are in. Finding a room by its code is something only
+-- join_room() may do, so nobody can enumerate other people's rooms.
+create policy rooms_select_member on public.rooms
+  for select to authenticated
+  using (public.is_room_member(id));
+```
+
+`is_room_member` is a function for a reason. Reading `room_members` inline from a
+policy makes Postgres evaluate `room_members`' own policy, which reads
+`room_members`, which… — infinite recursion. Wrapping the lookup in a
+`security definer` function lifts it out of RLS, which is the standard answer. I
+did not learn that from the docs; I learned it from the recursion error.
+
+Message authorship is handled the same way. `user_id` and the author's email are
+written by a trigger from `auth.uid()`, not by the client, so the only values the
+client is trusted with are the room id and the text itself.
+
+## Signing in with a code, not a link
+
+I went with an emailed one-time code and no passwords at all: signing up and
+signing back in become the same flow, and there is nothing to forget.
+
+The hard part was never the code — it was the mail. In Supabase, **whether the
+user receives a link or a code is decided by the email template, not by the
+method you call.** `signInWithOtp` still sends a link if
+`{{ .ConfirmationURL }}` is left in the body. And there are *two* templates: a
+brand-new address goes through Confirm signup, an already-verified one through
+Magic Link.
+
+Which produces a very specific trap. Testing with my own account passes every
+time — I am already verified, so I take the Magic Link path, and that is the
+template I fixed. Meanwhile the only people who hit the broken path are
+first-time users, who get a link with no code in it and stall on the code screen.
+I found out by watching a friend try it. "Sign up with an address you have never
+used" is now the starred line in the release checklist.
+
+The built-in mailer taught me the same lesson from the other side. It refuses to
+deliver to anyone who is not a member of the project, and it is rate limited to
+two messages an hour for the whole project. In an app whose entire point is
+inviting friends, that is indistinguishable from a bug. Custom SMTP was a
+precondition, not an upgrade.
+
+## Pinning the origin before shipping notifications
+
+The app used to live under `ohsedu.site/chat532` with a `basePath`. Adding web
+push moved it to its own subdomain, and not because the path was ugly.
+
+**Home-screen installs and push subscriptions are bound to an origin.** Change
+the origin after people have subscribed and every endpoint stored in the database
+is dead, the icon on their home screen points at nothing, and iOS users have to
+delete the app, add it again and re-enable notifications. That is a cost you pay
+in apologies, so I reordered the work: settle the address, then ship the
+notifications. `basePath`, `NEXT_PUBLIC_BASE_PATH` and a Multi-Zones plan where
+the portfolio proxied `/chat532/*` all disappeared with it. What is left in
+`next.config.mjs` is one cache header for the service worker.
+
+## With no server, who sends the push?
+
+A Supabase edge function. The browser that sent the message calls it, and the
+function gathers the other members' subscriptions and encrypts the payload
+against each of their public keys. Anyone with the app open is already covered by
+Realtime, so push exists for the devices that are closed.
+
+One class of message is deliberately never pushed: join and leave notices. If a
+phone buzzes every time somebody walks in or out, the user turns notifications
+off — and notifications, once off, stay off.
+
+iOS needed its own path. In a Safari tab the permission prompt **does not appear
+at all**; it requires iOS 16.4 or later, added to the home screen, and launched
+from that icon. So the app detects where it is running and, in a plain tab, shows
+an "add this to your home screen" note instead of a button that would do nothing.
+
+## What it cost
+
+*Migration order became a contract.* The schema is 24 SQL files, and later ones
+depend on what earlier ones created. The file that assembles a push payload
+reads subscriptions, whether the room is a DM, the history cutoff, last-read
+timestamps, attachments and avatars — so it is always last. With no server there
+is no migration runner either, which means the order is enforced by a table in
+the README. That is the part I have not automated.
+
+*Indexes are mine to think about.* Opening a room paginates by `id`, not
+`created_at` — first page descending, older messages below a cursor, catch-up
+above one. My first index was `(room_id, created_at)`, which does not support
+that sort, so Postgres was reading a room's whole history, sorting it, and
+handing back forty rows. One `(room_id, id)` index covers both directions: btree
+scans backwards, so there is no reason to write `desc`.
+
+*Logic in SQL has no types.* Because permission checks live in policies, nothing
+tells me at compile time which screen a policy change just broke. When the shape
+an RPC returns changes, I find out at runtime.
+
+## What I would do differently
+
+Free-tier limits bill you in time rather than money. The mail quota is shared per
+Supabase project, so testing sign-in a few times locally silently spends the
+allowance the deployed build needed — which looks exactly like "it only fails in
+production" until you work out why.
+
+And I never found a way to make "both templates must be edited" fail loudly. It
+is currently held together by a note in the README and a fresh plus-alias every
+time, which is the kind of discipline that eventually lapses. A test that drives
+the signup path end to end once per release belongs there.

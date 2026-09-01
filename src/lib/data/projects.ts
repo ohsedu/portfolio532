@@ -58,8 +58,8 @@ export type Project = {
 
 export const projects: Project[] = [
   {
-    slug: "chat532",
-    title: "chat532",
+    slug: "talk532",
+    title: "Talk532",
     tagline: {
       ko: "서버 없이 돌아가는 실시간 채팅",
       en: "A realtime chat app with no server of its own",

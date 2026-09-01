@@ -58,7 +58,7 @@ precondition, not an upgrade.
 
 ## Pinning the origin before shipping notifications
 
-The app used to live under `ohsedu.site/chat532` with a `basePath`. Adding web
+The app used to live under `ohsedu.site/talk532` with a `basePath`. Adding web
 push moved it to its own subdomain, and not because the path was ugly.
 
 **Home-screen installs and push subscriptions are bound to an origin.** Change
@@ -67,7 +67,7 @@ is dead, the icon on their home screen points at nothing, and iOS users have to
 delete the app, add it again and re-enable notifications. That is a cost you pay
 in apologies, so I reordered the work: settle the address, then ship the
 notifications. `basePath`, `NEXT_PUBLIC_BASE_PATH` and a Multi-Zones plan where
-the portfolio proxied `/chat532/*` all disappeared with it. What is left in
+the portfolio proxied `/talk532/*` all disappeared with it. What is left in
 `next.config.mjs` is one cache header for the service worker.
 
 ## With no server, who sends the push?
